@@ -18,11 +18,22 @@ class Snake
   end
 
   def head
-    return @segments[-1].end
+    return head_segment.end
   end
 
   def tail
-    return @segments[0].start
+    return tail_segment.start
+  end
+
+  def contains?(point)
+    @segments.each do |segment|
+      return true if segment.contains?(point)
+    end
+    return false
+  end
+
+  def grow
+    tail_segment.unshrink
   end
 
   def move
@@ -117,6 +128,16 @@ class Segment
     return "Segment: start:(#{x}, #{y}) #{@direction} #{@length}"
   end
 
+  def contains?(point)
+    e = self.end
+    [[0, 1], [1, 0]].each do |index, other|
+      if point[index] == start[index]
+        lower, upper = [start[other], e[other]].sort
+        return (lower..upper).member?(point[other])
+      end
+    end
+  end
+
   def end
     pt = @start.clone
     Point.move(pt, @direction, @length - 1)
@@ -131,6 +152,11 @@ class Segment
     raise "Can't shrink any more!" if @length == 1
     @length -= 1
     Point.move(@start, @direction)
+  end
+
+  def unshrink
+    @length += 1
+    Point.move(@start, Direction.opposite(@direction))
   end
 
   protected

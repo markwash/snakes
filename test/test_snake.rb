@@ -66,6 +66,12 @@ class TestDefaultSnake < Test::Unit::TestCase
     assert_equal @snake.head, @snake.tail
   end
 
+  def test_grow
+    @snake.grow
+    assert_equal [0, 0], @snake.head
+    assert_equal [-1, 0], @snake.tail
+  end
+
 end
 
 class TestSnakeEdgeCases < Test::Unit::TestCase
@@ -124,12 +130,69 @@ class TestNorthLyingSnakeMovesEast < Test::Unit::TestCase
     @snake.move()
   end
 
-  def test_has_two_segments
-    assert_equal 2, @snake.segments.length
+  def test_contains_corner
+    assert @snake.contains?([0, 0])
   end
 
   def test_length_stays_the_same
     assert_equal 5, @snake.length
+  end
+
+  def test_head_position
+    assert_equal [1, 0], @snake.head
+  end
+
+  def test_tail_position
+    assert_equal [0, 3], @snake.tail
+  end
+end
+
+class TestNorthLyingSnakeMovesEastTwice < Test::Unit::TestCase
+  def setup
+    @snake = Snake.new([0, 4], [0, 0])
+    @snake.turn(:east)
+    @snake.move()
+    @snake.move()
+  end
+
+  def test_contains_corner
+    assert @snake.contains?([0, 0])
+  end
+
+  def test_length_stays_the_same
+    assert_equal 5, @snake.length
+  end
+
+  def test_head_position
+    assert_equal [2, 0], @snake.head
+  end
+
+  def test_tail_position
+    assert_equal [0, 2], @snake.tail
+  end
+end
+
+class TestNorthLyingSnakeMovesAllTheWayEast < Test::Unit::TestCase
+  def setup
+    @snake = Snake.new([0, 4], [0, 0])
+    @snake.turn(:east)
+    (1..5).each do @snake.move() end
+  end
+
+  def test_does_not_contain_corner
+    assert !@snake.contains?([0, 0])
+  end
+
+  def test_length_stays_the_same
+    assert_equal 5, @snake.length
+  end
+
+  def test_head_position
+    assert_equal [5, 0], @snake.head
+  end
+
+  def test_tail_position
+    assert_equal [1, 0], @snake.tail
   end
 end
 
@@ -151,11 +214,14 @@ class TestMultiSegmentSnake < Test::Unit::TestCase
   end
 
   def test_middle_segment
-    assert_equal [1, 4], @snake.segments[1].start
-    assert_equal [3, 4], @snake.segments[1].end
+    assert @snake.contains?([0, 4])
+    assert @snake.contains?([3, 4])
   end
 
-  def test_segments_length
-    assert_equal 3, @snake.segments.length
+  def test_move
+    @snake.turn(:west)
+    @snake.move
+    assert_equal [2, 2], @snake.head
+    assert_equal [0, 1], @snake.tail
   end
 end
