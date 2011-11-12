@@ -21,10 +21,6 @@ class TestDefaultSnake < Test::Unit::TestCase
     assert_equal 1, @snake.segments.length
   end
 
-  def test_create_default_snake_segment_0
-    assert_equal [[0, 0], [0, 0]], @snake.segments[0]
-  end
-
   def test_direction
     assert_equal :east, @snake.direction
   end
@@ -75,7 +71,8 @@ end
 class TestSnakeEdgeCases < Test::Unit::TestCase
   def test_create_with_one_point
     snake = Snake.new([3, 4])
-    assert_equal [[3, 4], [3, 4]], snake.segments[0]
+    assert_equal [3, 4], snake.head
+    assert_equal [3, 4], snake.tail
   end
 end
 
@@ -86,7 +83,7 @@ end
 
 class TestSingleSegmentSnake < Test::Unit::TestCase
   def setup
-    @snake = Snake.new([0, 4], [0, 0])
+    @snake = Snake.new([0, 0], [0, 4])
   end
 
   def test_length
@@ -99,10 +96,6 @@ class TestSingleSegmentSnake < Test::Unit::TestCase
 
   def test_tail
     assert_equal [0, 0], @snake.tail
-  end
-
-  def test_segment_zero
-    assert_equal [[0, 4], [0, 0]], @snake.segments[0]
   end
 
   def test_segments_length
@@ -150,15 +143,16 @@ class TestMultiSegmentSnake < Test::Unit::TestCase
   end
 
   def test_head
-    assert_equal [0, 0], @snake.head
+    assert_equal [3, 2], @snake.head
   end
 
   def test_tail
-    assert_equal [3, 2], @snake.tail
+    assert_equal [0, 0], @snake.tail
   end
 
   def test_middle_segment
-    assert_equal [[0, 4], [3, 4]], @snake.segments[1]
+    assert_equal [1, 4], @snake.segments[1].start
+    assert_equal [3, 4], @snake.segments[1].end
   end
 
   def test_segments_length

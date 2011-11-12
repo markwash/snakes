@@ -1,142 +1,182 @@
 class Snake
 
-  attr_reader :direction
-  attr_reader :length
-  attr_reader :points
   attr_reader :segments
+  attr_reader :length
+  attr_reader :direction
 
   def initialize(*points)
+    @direction = :east
+    points = [[0, 0]] if points.length == 0
+    if points.length == 1
+      @segments = [Segment.new(points[0], @direction)]
+    elsif points.length == 2 and points[0] == points[1]
+      @segments = [Segment.new(points[0], @direction)]
+    else
+      @segments = convert_points_to_segments(points)
+    end
+    @length = calculate_length()
+  end
+
+  def head
+    return @segments[-1].end
+  end
+
+  def tail
+    return @segments[0].start
+  end
+
+  def move
+    if @direction == head_segment.direction
+      head_segment.grow
+    else
+      new_head = head.clone
+      Point.move(new_head, @direction)
+      @segments.push(Segment.new(new_head, @direction))
+    end
+
+    if tail_segment.length > 1
+      tail_segment.shrink
+    else
+      @segments.shift
+    end
+  end
+    
+  def turn(direction)
+    raise "Invalid direction!" unless Direction.valid?(direction)
+    @direction = direction if direction_currently_possible(direction)
+  end
+
+  protected
+
+  def head_segment
+    return @segments[-1]
+  end
+
+  def tail_segment
+    return @segments[0]
+  end
+
+  def calculate_length
+    length = 0
+    @segments.each do |segment|
+      length += segment.length
+    end
+    return length
+  end
+
+  def direction_currently_possible(direction)
+    return ((head_segment.length == 1) or
+            (direction != Direction.opposite(segments[-1].direction)))
+  end
+
+  def substitute_default_points_if_necessary(points)
     if points.length == 0
       points = [[0, 0], [0, 0]]
     elsif points.length == 1
       points = [points[0], points[0]]
     end
-    @points = points
-    @segments = SnakeSegments.new(self)
-    @length = calculate_length 
-    @direction = :east
+    return points
   end
 
-  def head
-    return @points[0]
-  end
-
-  def tail
-    return @points[-1]
-  end
-
-  def move
-    if head == tail and @points.length == 2
-      move_point(@points[0], @direction)
-      move_point(@points[-1], @direction)
-      return
+  def convert_points_to_segments(points)
+    # points are given from tail to head
+    segments = []
+    prev = nil
+    points.each do |pt|
+      next if pt == prev
+      segments << Segment.from_points(prev, pt) if not prev.nil?
+      prev = pt
     end
-    neck_direction = Direction.from_points(*@segments[0])
-    @points.unshift(@points[0].clone) if neck_direction != @direction
-    move_point(@points[0], @direction)
-    tail_direction = Direction.from_points(*@segments[-1])
-    move_point(@points[-1], tail_direction)
-    @points.pop() if @points[-1] == @points[-2]
+    segments[1..-1].each do |segment| segment.shrink end
+    return segments
   end
-    
-  def turn(direction)
-    raise "Invalid direction!" unless Direction.valid?(direction)
-    @direction = direction if direction_currently_possible?(direction)
+
+end
+
+class Segment
+
+  attr_reader :start
+  attr_reader :length
+  attr_reader :direction
+
+  def self.from_points(start_pt, end_pt)
+    raise "Invalid segment!" unless valid?(start_pt, end_pt)
+    length = distance(start_pt, end_pt) + 1
+    direction = Direction.from_points(start_pt, end_pt)
+    return self.new(start_pt, direction, length)
+  end
+
+  def initialize(start, direction, length=1)
+    @start = start
+    @direction = direction
+    @length = length
+  end
+
+  def to_s
+    x, y = @start
+    return "Segment: start:(#{x}, #{y}) #{@direction} #{@length}"
+  end
+
+  def end
+    pt = @start.clone
+    Point.move(pt, @direction, @length - 1)
+    return pt
+  end
+
+  def grow
+    @length += 1
+  end
+
+  def shrink
+    raise "Can't shrink any more!" if @length == 1
+    @length -= 1
+    Point.move(@start, @direction)
   end
 
   protected
-  def print_points(points)
-    points.each { |x, y| print "(#{x}, #{y}) "}
-    puts
+  def self.valid?(pt1, pt2)
+    return (((pt1[0] == pt2[0]) or (pt1[1] == pt2[1])) and (pt1 != pt2))
   end
 
-  def move_point(pt, direction)
-    case direction
-    when :east
-      pt[0] += 1
-    when :west
-      pt[0] -= 1
-    when :north
-      pt[1] += 1
-    when :south
-      pt[1] -= 1
-    end
-  end
-
-  def calculate_length
-    length = 1
-    @segments.each do |pt1, pt2|
-      if pt1[0] == pt2[0]:
-        diff_index = 1
-      elsif pt1[1] == pt2[1]:
-        diff_index = 0
-      else
-        raise "Invalid segment!"
-      end
-      length += (pt1[diff_index] - pt2[diff_index]).abs
-    end
-    return length
-  end
-
-  def direction_currently_possible?(dir)
-    current_angle = Direction.from_points(*@segments[0])
-    return dir != Direction.opposite(current_angle)
+  def self.distance(pt1, pt2)
+    return (pt1[0] - pt2[0]).abs + (pt1[1] - pt2[1]).abs
   end
 
 end
 
 class Direction
 
-  VALID_DIRECTIONS = [:east, :west, :north, :south]
-  OPPOSITES = {:east => :west, :west => :east,
-               :north => :south, :south => :north}
-
-  def self.valid?(direction)
-    VALID_DIRECTIONS.include?(direction)
-  end
+  DIRECTIONS = [:north, :south, :east, :west]
+  OPPOSITES = {:north => :south, :south => :north,
+               :east => :west, :west => :east}
 
   def self.from_points(pt1, pt2)
-    return :nil if pt1 == pt2
     x1, y1 = pt1
     x2, y2 = pt2
-    return :north if x1 == x2 and y1 > y2
-    return :south if x1 == x2 and y1 < y2
-    return :east if x1 > x2 and y1 == y2
-    return :west if x1 < x2 and y1 == y2
-    raise "Invalid segment! (#{x1}, #{y1}) -> (#{x2}, #{y2})"
+    return :north if y1 < y2
+    return :south if y1 > y2
+    return :east if x1 < x2
+    return :west if x1 > x2
+    raise "Invalid points!"
   end
 
   def self.opposite(direction)
     return OPPOSITES[direction]
   end
 
-  private
-  def self.new
+  def self.valid?(direction)
+    return DIRECTIONS.include?(direction)
   end
+  
 end
 
-class SnakeSegments
+class Point
 
-  attr_reader :points
-  
-  def initialize(snake)
-    @snake = snake
+  def self.move(point, direction, distance=1)
+    point[0] += distance if direction == :east
+    point[0] -= distance if direction == :west
+    point[1] += distance if direction == :north
+    point[1] -= distance if direction == :south
   end
 
-  def length
-    return @snake.points.length - 1
-  end
-
-  def [](index)
-    return [@snake.points[index], @snake.points[index + 1]] if index >= 0
-    return [@snake.points[index - 1], @snake.points[index]] if index < 0
-  end
-
-  def each
-    prev = nil
-    @snake.points.each do |point|
-      yield [prev, point] if not prev.nil?
-      prev = point
-    end
-  end
 end
