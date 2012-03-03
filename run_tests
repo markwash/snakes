@@ -1,5 +1,12 @@
 #!/bin/bash
 
-source "$(dirname $0)/.snakes/bin/activate_sandbox"
+sandboxdir="$(dirname $0)/.snakes"
+if [ ! -d "$sandboxdir" ]; then
+	sandbox "$sandboxdir" -g bundler
+	source "$sandboxdir/bin/activate_sandbox"
+	bundle install
+	deactivate_sandbox
+fi
+source "$sandboxdir/bin/activate_sandbox"
 rake test
 deactivate_sandbox
