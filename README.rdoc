@@ -1,16 +1,19 @@
 = snakes
 
-Description goes here.
+A(n incomplete) ruby implementation of the classic snakes game.
 
-== Contributing to snakes
- 
-* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
-* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
-* Fork the project
-* Start a feature/bugfix branch
-* Commit and push until you are happy with your contribution
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+== Development plans
+
+* Story 1: Snake randomly moves around field
+  * Snake drawer class to flesh out the screen interface
+  * Need some implementation of the screen interface
+  * a simple binary to randomly move & turn the snake while
+    drawing the screen periodically
+    * probably have to have some boundary/turn conditions
+    * in this sense it is probably arbitrary that the size
+      of the field is going to coincide with the size of the
+      screen, so I should avoid being lame and tying them 
+      together
 
 == Copyright
 
