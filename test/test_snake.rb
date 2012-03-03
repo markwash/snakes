@@ -70,6 +70,7 @@ class TestDefaultSnake < Test::Unit::TestCase
     @snake.grow
     assert_equal [0, 0], @snake.head
     assert_equal [-1, 0], @snake.tail
+    assert_equal 2, @snake.length
   end
 
 end

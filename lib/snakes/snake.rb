@@ -34,6 +34,7 @@ class Snake
 
   def grow
     tail_segment.unshrink
+    @length += 1
   end
 
   def move
