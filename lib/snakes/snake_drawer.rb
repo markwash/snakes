@@ -6,6 +6,8 @@ class SnakeDrawer
   end
 
   def draw(screen)
-    screen.draw(0, 0, "O")
+    @snake.points do |pt|
+      screen.draw(pt[0], pt[1], "O")
+    end
   end
 end

@@ -32,6 +32,14 @@ class Snake
     return false
   end
 
+  def points
+    @segments.each do |segment|
+      segment.points do |pt|
+        yield pt
+      end
+    end
+  end
+
   def grow
     tail_segment.unshrink
     @length += 1
@@ -136,6 +144,14 @@ class Segment
         lower, upper = [start[other], e[other]].sort
         return (lower..upper).member?(point[other])
       end
+    end
+  end
+
+  def points
+    for i in (1..@length)
+      pt = @start.clone
+      Point.move(pt, @direction, i - 1)
+      yield pt
     end
   end
 
